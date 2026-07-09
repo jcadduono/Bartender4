@@ -22,43 +22,6 @@ local WoWClassicMists = (WOW_PROJECT_ID == WOW_PROJECT_MISTS_CLASSIC)
 -- GLOBALS: LFDMicroButton, CollectionsMicroButton, EJMicroButton, MainMenuMicroButton
 -- GLOBALS: HasVehicleActionBar, UnitVehicleSkin, HasOverrideActionBar, GetOverrideBarSkin
 
-local BT_MICRO_BUTTONS
-if WoWClassicMists then
-	BT_MICRO_BUTTONS = {
-		"CharacterMicroButton",
-		"SpellbookMicroButton",
-		"TalentMicroButton",
-		"AchievementMicroButton",
-		"QuestLogMicroButton",
-		"SocialsMicroButton",
-		"GuildMicroButton",
-		"PVPMicroButton",
-		"LFGMicroButton",
-		"CollectionsMicroButton",
-		"EJMicroButton",
-		--"HelpMicroButton",
-		"StoreMicroButton",
-		"MainMenuMicroButton",
-	}
-elseif WoWClassic then
-	BT_MICRO_BUTTONS = CopyTable(MICRO_BUTTONS)
-else
-	BT_MICRO_BUTTONS = {
-		"CharacterMicroButton",
-		"ProfessionMicroButton",
-		"PlayerSpellsMicroButton",
-		"AchievementMicroButton",
-		"QuestLogMicroButton",
-		"HousingMicroButton",
-		"GuildMicroButton",
-		"LFDMicroButton",
-		"CollectionsMicroButton",
-		"EJMicroButton",
-		"StoreMicroButton",
-		"MainMenuMicroButton",
-	}
-end
-
 -- create prototype information
 local MicroMenuBar = setmetatable({}, {__index = ButtonBar})
 
@@ -84,26 +47,9 @@ function MicroMenuMod:OnEnable()
 		self.bar = setmetatable(Bartender4.ButtonBar:Create("MicroMenu", self.db.profile, L["Micro Menu"], true), {__index = MicroMenuBar})
 		local buttons = {}
 
-		-- remove the LFG button on classic era
-		if WoWClassicEra then
-			tDeleteItem(BT_MICRO_BUTTONS, "LFGMicroButton")
-		end
-
-		-- guild and social share a spot
-		if WoWClassic then
-			tDeleteItem(BT_MICRO_BUTTONS, "GuildMicroButton")
-		end
-
-		-- these are handled below, if both are in here it'll error
-		if HelpMicroButton and StoreMicroButton then
-			tDeleteItem(BT_MICRO_BUTTONS, "HelpMicroButton")
-		end
-
-		for i=1, #BT_MICRO_BUTTONS do
-			local button = _G[BT_MICRO_BUTTONS[i]]
-			if button then
-				table_insert(buttons, button)
-			end
+		local buttonInfo = MicroMenuMixin.GenerateButtonInfos()
+		for i=1,#buttonInfo do
+			table_insert(buttons, buttonInfo[i].button)
 		end
 		self.bar.buttons = buttons
 
@@ -260,17 +206,6 @@ end
 
 function MicroMenuBar:UpdateButtonLayout()
 	ButtonBar.UpdateButtonLayout(self)
-
-	if HelpMicroButton and StoreMicroButton then
-		HelpMicroButton:ClearAllPoints()
-		HelpMicroButton:SetAllPoints(StoreMicroButton)
-		-- If the StoreButton is hidden we want to replace it with the Help button
-		if not StoreMicroButton:IsShown() then
-			HelpMicroButton:Show()
-		else
-			HelpMicroButton:Hide()
-		end
-	end
 
 	if WoWClassic and GuildMicroButton then
 		GuildMicroButton:SetParent(self)
